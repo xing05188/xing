@@ -8,8 +8,10 @@ from keras.layers import Dense, Input
 import os
 import matplotlib.pyplot as plt
 
-# 定义训练的回合数，可根据实际情况调整该值以获得更好的训练效果
+# 定义训练的回合数和每回合的最多执行步数
+# 可根据实际情况调整该值以获得更好的训练效果
 EPISODES = 1000
+MAX_STEPS = 500
 
 
 class DQN_Agent:
@@ -133,7 +135,7 @@ if __name__ == "__main__":
         # 本回合的损失值初始化为 0
         total_loss = 0
         step_count = 0
-        for time in range(500):
+        for time in range(MAX_STEPS):
             # 智能体选择下一个动作
             action = agent.select_next_action(state)
             # 执行动作，获取下一个状态、奖励、是否终止、是否截断的信息
