@@ -110,6 +110,13 @@ if __name__ == "__main__":
     action_size = env.action_space.n
     # 创建 DQN 智能体
     agent = DQN_Agent(state_size, action_size)
+    # 加载模型权重
+    model_path = "./save/cartpole-dqn.weights.h5"
+    if os.path.exists(model_path):
+        agent.load(model_path)
+        print(f"成功加载模型: {model_path}")
+    else:
+        print(f"模型文件 {model_path} 不存在，将从头开始训练。")
     # 小批量数据的大小
     batch_size = 32
     # 保存模型权重的目录
@@ -117,14 +124,14 @@ if __name__ == "__main__":
     # 如果保存目录不存在，则创建该目录
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
-
     # 存储每个回合的总奖励
     rewards = []
     # 存储每个回合的探索率
     epsilons = []
     # 存储每个回合的损失值
     losses = []
-
+    # 打开文件用于写入信息
+    log_file = open('training_log.txt', 'w')
     for episode in range(EPISODES):
         # 重置环境，获取初始状态
         state, _ = env.reset()
@@ -166,15 +173,18 @@ if __name__ == "__main__":
                 step_count += 1
 
             if done:
+                # 保存主模型的权重到指定文件
+                agent.save(os.path.join(save_dir, f'cartpole-dqn.weights.h5'))
                 # 打印当前回合的得分和探索率
-                print(f"episode: {episode + 1}/{EPISODES}, reward: {total_reward}, epsilon: {agent.Epsilon:.2f}, loss:{total_loss}")
+                log_info = f"episode: {episode + 1}/{EPISODES}, reward: {total_reward}, epsilon: {agent.Epsilon:.3f}, loss:{total_loss}"
+                print(log_info)
+                # 将信息写入文件
+                log_file.write(log_info + '\n')
                 break
 
         if (episode + 1) % agent.target_update_frequency == 0:
             # 每达到目标模型更新的频率，更新目标模型的权重
             agent.update_target_model()
-            # 保存主模型的权重到指定文件
-            agent.save(os.path.join(save_dir, f'cartpole-dqn_episode_{episode + 1}.weights.h5'))
 
         # 记录当前回合的总奖励
         rewards.append(total_reward)
@@ -187,6 +197,7 @@ if __name__ == "__main__":
             losses.append(0)
 
     # 关闭环境
+    log_file.close()
     env.close()
 
     # 计算平均奖励，窗口大小设为 10
@@ -204,31 +215,30 @@ if __name__ == "__main__":
     plt.subplot(2, 2, 1)
     plt.plot(rewards, label='Total_Rewards', alpha=0.7)
     plt.xlabel('Episode')
-    plt.ylabel('Reward')
-    plt.title('Episode Rewards')
+    plt.ylabel('Total_Reward')
+    plt.title('Episode----Rewards')
     plt.legend()
 
     plt.subplot(2, 2, 2)
     plt.plot(moving_averages, label='Average_Reward', color='orange')
     plt.xlabel('Episode')
     plt.ylabel('Average Reward')
-    plt.title('Episode Moving Average of Rewards')
+    plt.title('Episode----Average_Reward')
     plt.legend()
 
     plt.subplot(2, 2, 3)
     plt.plot(epsilons, label='Exploration Rate (Epsilon)', color='green')
     plt.xlabel('Episode')
     plt.ylabel('Epsilon')
-    plt.title('Exploration Rate (Epsilon)')
+    plt.title('Episode----Exploration Rate (Epsilon)')
     plt.legend()
 
     plt.subplot(2, 2, 4)
     plt.plot(losses, label='Loss', color='red')
     plt.xlabel('Episode')
     plt.ylabel('Loss')
-    plt.title('Training Loss')
+    plt.title('Episode----Training Loss')
     plt.legend()
 
     plt.tight_layout()
     plt.show()
-
