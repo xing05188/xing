@@ -18,40 +18,27 @@
 ## 三、安装依赖
 在命令行中执行以下命令来安装所需的依赖库：
 ```bash
-pip install gymnasium numpy keras tensorflow matplotlib
+pip install gymnasium numpy keras tensorflow matplotlib "gymnasium[classic-control]"
 ```
-这里需要注意的是，`keras` 通常是基于 `tensorflow` 后端运行的，所以也需要安装 `tensorflow`。
+这里需要注意的是，`keras` 通常是基于 `tensorflow` 后端运行的，所以也需要安装 `tensorflow`。"gymnasium[classic-control]"好像不会主动装，所以额外装。
 
 ## 四、代码结构
 ### 文件结构
-项目主要包含一个Python文件 `DQN.py`，该文件实现了整个DQN算法的核心逻辑。
+项目主要包含3个Python文件 `DQN.py`，`train.py`，`test.py`。
 
 ## 五、运行程序
-1. **克隆项目**：将项目仓库克隆到本地：
+1. **训练**：在命令行中执行以下命令启动训练：
 ```bash
-git clone https://github.com/xing05188/xing/tree/main/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%AF%BC%E8%AE%BADQN
-cd [项目目录]
+python train.py
 ```
-2. **运行代码**：在命令行中执行以下命令启动训练：
-```bash
-python DQN.py
-```
-3. **程序运行过程**：
-- **环境初始化**：程序会创建 `CartPole-v1` 环境，并初始化DQN智能体。
-- **训练过程**：智能体将进行 `EPISODES`（默认为1000）个回合的训练。在每个回合中，智能体根据当前状态选择动作，执行动作后更新状态和奖励，并将经验存储到记忆缓冲区中。当记忆缓冲区中的样本数量超过批量大小时，智能体将进行经验回放，更新神经网络的参数。
-- **目标网络更新**：每隔 `target_update_frequency`（默认为10）个回合，目标网络的权重将被更新为评估网络的权重。
 - **模型保存**：每隔10个回合，模型的权重将被保存到 `./save` 目录下，文件名格式为 `cartpole-dqn_episode_<episode_number>.weights.h5`。
-- 
-4. **程序输出**：
-训练过程中会打印每个回合的得分、探索率和损失值。训练结束后，会弹出一个窗口显示四个图表：
-- **Episode Rewards**：每个回合的总奖励曲线，反映智能体在每个回合中的表现。
-- **Episode Moving Average of Rewards**：奖励的移动平均曲线，平滑了奖励曲线，更清晰地显示训练的趋势。
-- **Exploration Rate (Epsilon)**：探索率曲线，随着训练的进行，探索率逐渐降低。
-- **Training Loss**：训练损失曲线，反映模型参数的更新幅度。
-
-5. **终止程序**：
-如果你想提前终止程序，可以在终端中按下 `Ctrl + C` 组合键。
-
+- **结果输出**：训练过程中会打印每个回合的得分、探索率和损失值。训练结束后，会弹出一个窗口显示四个图表
+2. **测试**：
+- **加载模型**：确保`./save` 目录下有 `cartpole-dqn_episode_<episode_number>.weights.h5`模型。
+- **测试模型**：在命令行中执行以下命令启动训练：
+```bash
+python test.py
+```
 
 ## 六、超参数调整
 可以在 `DQNAgent` 类的 `__init__` 方法中调整以下超参数来优化训练效果：
