@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>软件学院地图🗺️引导🧭</title>
+    <link rel="stylesheet" href="hci4.css">
+</head>
+<body>
+    <div class="usage-tip">
+        ⚠️使用说明：<br>
+        1️⃣点击红点或搜索房间号可查看房间信息。<br>
+        2️⃣鼠标按住左键可拖动地图。<br>
+        3️⃣弹窗内容可上下滚动浏览。
+    </div>
+    <div class="welcome-text">🎉欢迎来到💻软件学院（济事楼4楼）🎉</div>
+    <div class="search-bar">
+        <input id="search-content" type="text" placeholder="🔎输入房间号或关键词搜索">
+        <button id="search-btn" type="button">搜索🔎</button>
+    </div>
+    <div class="autor">🌟2351289周慧星⭐</div>
+    <div class="map-container">
+        <img src="images/map.jpg" alt="软件学院地图" class="map-img" id="map-img">
+    </div>
+    <div class="modal-bg" id="modal-bg">
+        <div class="modal" id="modal">
+            <button class="arrow-btn" id="left-arrow" aria-label="上一个房间">🢀</button>
+            <button class="arrow-btn" id="right-arrow" aria-label="下一个房间">🢂</button>
+            <button class="close-btn" id="close-btn" aria-label="关闭">❌</button>
+            <h2 id="room-title"></h2>
+            <p id="room-desc"></p>
+            <div id="room-img-box"></div>     
+        </div>
+    </div>
+    <script src="hci4.js"></script>
+</body>
+</html>
