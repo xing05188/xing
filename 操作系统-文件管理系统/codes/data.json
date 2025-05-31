@@ -1,0 +1,105 @@
+{
+    "children": [
+        {
+            "children": [
+                {
+                    "children": [
+                    ],
+                    "isDir": true,
+                    "lastModified": "2025-05-31T22:40:55",
+                    "name": "示例",
+                    "type": "文件夹"
+                },
+                {
+                    "children": [
+                    ],
+                    "content": "我是",
+                    "isDir": false,
+                    "lastModified": "2025-06-01T00:24:44",
+                    "name": "示例.doc",
+                    "type": "DOC 文件"
+                },
+                {
+                    "children": [
+                    ],
+                    "content": "2351289",
+                    "isDir": false,
+                    "lastModified": "2025-05-31T22:43:28",
+                    "name": "示例.mp3",
+                    "type": "MP3 文件"
+                },
+                {
+                    "children": [
+                    ],
+                    "content": "周慧星",
+                    "isDir": false,
+                    "lastModified": "2025-05-31T22:43:35",
+                    "name": "示例.docx",
+                    "type": "DOCX 文件"
+                },
+                {
+                    "children": [
+                    ],
+                    "content": "同济大学",
+                    "isDir": false,
+                    "lastModified": "2025-05-31T22:43:41",
+                    "name": "示例.ai",
+                    "type": "AI 文件"
+                },
+                {
+                    "children": [
+                    ],
+                    "content": "嘉定校区",
+                    "isDir": false,
+                    "lastModified": "2025-05-31T22:43:48",
+                    "name": "示例.zip",
+                    "type": "ZIP 文件"
+                },
+                {
+                    "children": [
+                    ],
+                    "content": "软件工程",
+                    "isDir": false,
+                    "lastModified": "2025-05-31T22:43:59",
+                    "name": "示例.xls",
+                    "type": "XLS 文件"
+                },
+                {
+                    "children": [
+                    ],
+                    "content": "软件学院",
+                    "isDir": false,
+                    "lastModified": "2025-05-31T22:44:20",
+                    "name": "示例.pdf",
+                    "type": "PDF 文件"
+                },
+                {
+                    "children": [
+                    ],
+                    "content": "牛逼",
+                    "isDir": false,
+                    "lastModified": "2025-05-31T22:44:39",
+                    "name": "示例.txt",
+                    "type": "TXT 文件"
+                },
+                {
+                    "children": [
+                    ],
+                    "content": "helllo",
+                    "isDir": false,
+                    "lastModified": "2025-05-31T22:44:46",
+                    "name": "示例.未知",
+                    "type": "未知 文件"
+                }
+            ],
+            "isDir": true,
+            "lastModified": "2025-05-30T23:16:04",
+            "name": "示例",
+            "type": "文件夹"
+        }
+    ],
+    "isDir": true,
+    "lastModified": "2025-05-30T23:15:54",
+    "name": "root",
+    "type": "文件夹"
+}
