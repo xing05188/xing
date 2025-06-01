@@ -126,3 +126,8 @@ QModelIndex VFolderOnlyModel::index(int row, int column, const QModelIndex& pare
     }
     return QModelIndex();
 }
+
+void VFolderOnlyModel::refresh(const QModelIndex& idx) {
+    Q_UNUSED(idx);
+    emit layoutChanged();
+}

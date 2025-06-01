@@ -14,17 +14,16 @@ public:
     FileEditDialog(const QString& fileName, QString& content, QWidget* parent = nullptr)
         : QDialog(parent), contentRef(content) {
         setWindowTitle(fileName);
-        textEdit = new QTextEdit(this);
+        textEdit = new QTextEdit(this);  // 文本编辑器
         textEdit->setPlainText(content);
         textEdit->moveCursor(QTextCursor::End);
-        originalContent = content;
 
         saveBtn = new QPushButton("保存", this);
         closeBtn = new QPushButton("关闭", this);
         connect(saveBtn, &QPushButton::clicked, this, &FileEditDialog::onSave);
         connect(closeBtn, &QPushButton::clicked, this, &QDialog::close);
 
-        QHBoxLayout* btnLayout = new QHBoxLayout;
+        QHBoxLayout* btnLayout = new QHBoxLayout;  
         btnLayout->addStretch();
         btnLayout->addWidget(saveBtn);
         btnLayout->addWidget(closeBtn);
@@ -36,9 +35,9 @@ public:
         resize(600, 400);
     }
 protected:
-    void closeEvent(QCloseEvent* event) override {
+    void closeEvent(QCloseEvent* event) override {   // 窗口关闭事件处理
         QString curContent = textEdit->toPlainText();
-        if (curContent != originalContent) {
+        if (curContent != contentRef) {  //修改过
             int ret = QMessageBox::question(this, "提示", "内容已修改，是否保存？", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
             if (ret == QMessageBox::Yes) {
                 onSave();
@@ -47,12 +46,8 @@ protected:
         event->accept();
     }
 private slots:
-    void onSave() {
-        QString newContent = textEdit->toPlainText();
-        if (newContent != contentRef) {
-            contentRef = newContent;
-            originalContent = newContent;
-        }
+    void onSave() {  // 保存按钮点击事件
+        contentRef = textEdit->toPlainText();
         QMessageBox::information(this, "提示", "保存成功！");
         accept();
     }
@@ -61,5 +56,4 @@ private:
     QPushButton* saveBtn;
     QPushButton* closeBtn;
     QString& contentRef;
-    QString originalContent;
 };

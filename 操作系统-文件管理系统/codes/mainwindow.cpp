@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget* parent)
     folderModel = new VFolderOnlyModel(vfsRoot, this);
     this->resize(850, 500);
     setupUI();
-    currentIndex = vfsModel->index(0, 0, QModelIndex()); // root
+    currentIndex = vfsModel->index(0, 0, QModelIndex()); // 默认显示根目录
     updateListView(currentIndex);
     updatePathEdit(currentIndex);
 }
@@ -42,7 +42,7 @@ void MainWindow::setupUI() {
     toolbar->addAction(QIcon("icons/forward.png"), "前进", this, &MainWindow::onForward);
     toolbar->addAction(QIcon("icons/up.png"), "上移", this, &MainWindow::onUp);
     toolbar->addAction(QIcon("icons/refresh.png"), "刷新", this, &MainWindow::onRefresh);
-    toolbar->addAction(QIcon("icons/open.png"), "打开文件", this, &MainWindow::onOpenFile);
+    toolbar->addAction(QIcon("icons/open.png"), "打开文件", this, &MainWindow::openCurrentItem);
     toolbar->addSeparator();
     QAction* spacer = new QAction("   ", this);
     spacer->setEnabled(false); // 禁用点击
@@ -50,8 +50,8 @@ void MainWindow::setupUI() {
     toolbar->addSeparator();
     toolbar->addAction(QIcon("icons/folder.png"), "新建文件夹", this, [this]() { onNew(true); });
     toolbar->addAction(QIcon("icons/file.png"), "新建文件", this, [this]() { onNew(false); });
-    toolbar->addAction(QIcon("icons/cut.png"), "剪切", this, &MainWindow::onCut);
-    toolbar->addAction(QIcon("icons/copy.png"), "复制", this, &MainWindow::onCopy);
+    toolbar->addAction(QIcon("icons/cut.png"), "剪切", this, [this]() { onCutOrCopy(false); });
+    toolbar->addAction(QIcon("icons/copy.png"), "复制", this, [this]() { onCutOrCopy(true); });
     toolbar->addAction(QIcon("icons/paste.png"), "粘贴", this, &MainWindow::onPaste);
     toolbar->addAction(QIcon("icons/rename.png"), "重命名", this, &MainWindow::onRename);
     toolbar->addAction(QIcon("icons/delete.png"), "删除", this, &MainWindow::onDelete);
@@ -92,7 +92,7 @@ void MainWindow::setupUI() {
     listView->setRootIndex(currentIndex);
     listView->setHeaderHidden(false); // 显示表头
     listView->setContextMenuPolicy(Qt::CustomContextMenu); // 右键菜单
-    connect(listView, &QTreeView::doubleClicked, this, &MainWindow::onListDoubleClicked);  // 双击打开文件或文件夹
+    connect(listView, &QTreeView::doubleClicked, this, &MainWindow::openCurrentItem);  // 双击打开文件或文件夹
     connect(listView, &QTreeView::customContextMenuRequested, this, &MainWindow::showContextMenu); // 右键菜单
     listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     listView->setSelectionMode(QAbstractItemView::ExtendedSelection);
@@ -100,12 +100,12 @@ void MainWindow::setupUI() {
     listView->setSelectionBehavior(QAbstractItemView::SelectRows);
 
     // 设置分割器
-    QSplitter* splitter1 = new QSplitter(this);
-    splitter1->addWidget(treeView);
-    splitter1->addWidget(listView);
-    splitter1->setStretchFactor(0, 1);
-    splitter1->setStretchFactor(1, 4);
-    setCentralWidget(splitter1);
+    QSplitter* splitter = new QSplitter(this);
+    splitter->addWidget(treeView);
+    splitter->addWidget(listView);
+    splitter->setStretchFactor(0, 1);
+    splitter->setStretchFactor(1, 4);
+    setCentralWidget(splitter);
 }
 
 void MainWindow::onTreeClicked(const QModelIndex& idx) {
@@ -119,15 +119,20 @@ void MainWindow::onTreeClicked(const QModelIndex& idx) {
     updatePathEdit(vfsIdx);
 }
 
-void MainWindow::onListDoubleClicked(const QModelIndex& idx) {
+void MainWindow::openCurrentItem() {
+    QModelIndex idx = listView->currentIndex();
+    if (!idx.isValid()) return;
     VNode* node = vfsModel->nodeFromIndex(idx);
     if (!node) return;
-    if (node->isDir) {
-        onTreeClicked(idx);
-    }
+    if (node->isDir) 
+        onTreeClicked(idx);  // 如果是文件夹就切换视图
     else {
-        listView->setCurrentIndex(idx); // 保证 currentIndex 正确
-        onOpenFile();
+        // 如果是文件就编辑
+        FileEditDialog dlg(node->name, node->content, this);
+        if (dlg.exec() == QDialog::Accepted) {
+            node->lastModified = QDateTime::currentDateTime();
+            vfsModel->refresh(currentIndex);
+        }
     }
 }
 
@@ -161,23 +166,21 @@ void MainWindow::onNew(bool isFolder) {
     vfsModel->beginModelChange();
     parentNode->children.append(new VNode(name, isFolder, parentNode));
     vfsModel->endModelChange();
+    folderModel->layoutChanged();
     updateListView(currentIndex);
 }
 
 void MainWindow::onDelete() {
     QModelIndexList indexes = listView->selectionModel()->selectedRows();
     if (indexes.isEmpty()) return;
-
     // 按 row 倒序，防止删除时下标错乱
     std::sort(indexes.begin(), indexes.end(), [](const QModelIndex& a, const QModelIndex& b) {
         return a.row() > b.row();
         });
-
     vfsModel->beginModelChange();
     for (const QModelIndex& idx : indexes) {
         VNode* node = vfsModel->nodeFromIndex(idx);
         if (!node || !node->parent) continue;
-
         // 检查 currentIndex 是否在被删节点下
         VNode* curNode = vfsModel->nodeFromIndex(currentIndex);
         if (curNode == node || (curNode && curNode->parent == node)) {
@@ -185,7 +188,6 @@ void MainWindow::onDelete() {
             updateListView(currentIndex);
             updatePathEdit(currentIndex);
         }
-
         // 检查 clipboardNodes 里是否有被删节点或其子节点，移除
         for (int i = clipboardNodes.size() - 1; i >= 0; --i) {
             VNode* temp = clipboardNodes[i];
@@ -202,6 +204,7 @@ void MainWindow::onDelete() {
         delete node; // 递归释放
     }
     vfsModel->endModelChange();
+    folderModel->layoutChanged();
     updateListView(currentIndex);
 }
 void MainWindow::onRename() {
@@ -233,37 +236,29 @@ void MainWindow::onRename() {
                 node->lastModified = QDateTime::currentDateTime();
                 node->type = node->isDir ? "文件夹" : (node->name.contains('.') ? node->name.section('.', -1).toUpper() + " 文件" : "文件");
                 vfsModel->endModelChange();
+                folderModel->layoutChanged();
                 updateListView(curDirIndex);
                 break; // 名字可用，退出循环
             }
         }
     }
 }
-// 剪切操作
-void MainWindow::onCut() {
+
+void MainWindow::onCutOrCopy(bool CutOrCopy) {
     QModelIndexList indexes = listView->selectionModel()->selectedRows();
     clipboardNodes.clear();
     for (const QModelIndex& idx : indexes) {
         VNode* node = vfsModel->nodeFromIndex(idx);
         if (node) clipboardNodes.append(node);
     }
-    isCopy = false; // 表示剪切
+    isCopy = CutOrCopy; // true为复制，false为剪切
 }
-void MainWindow::onCopy() {
-    QModelIndexList indexes = listView->selectionModel()->selectedRows();
-    clipboardNodes.clear();
-    for (const QModelIndex& idx : indexes) {
-        VNode* node = vfsModel->nodeFromIndex(idx);
-        if (node) clipboardNodes.append(node);
-    }
-    isCopy = true;  // 表示复制
-}
+
 void MainWindow::onPaste() {
     if (clipboardNodes.isEmpty()) return;
     VNode* parentNode = vfsModel->nodeFromIndex(currentIndex);
     if (!parentNode || !parentNode->isDir) return;
     vfsModel->beginModelChange();
-
     if (isCopy) {
         // 复制模式用clone
         std::function<VNode* (VNode*, VNode*)> clone = [&](VNode* src, VNode* parent) -> VNode* {
@@ -292,23 +287,13 @@ void MainWindow::onPaste() {
         isCopy = true; // 恢复默认
     }
     vfsModel->endModelChange();
+    folderModel->layoutChanged();
     updateListView(currentIndex);
 }
 void MainWindow::onRefresh() {
     vfsModel->refresh(currentIndex);
+    folderModel->refresh(currentIndex);
     updateListView(currentIndex);
-}
-
-void MainWindow::onOpenFile() {
-    QModelIndex idx = listView->currentIndex();
-    if (!idx.isValid()) return;
-    VNode* node = vfsModel->nodeFromIndex(idx);
-    if (!node || node->isDir) return;
-    FileEditDialog dlg(node->name, node->content, this);
-    if (dlg.exec() == QDialog::Accepted) {
-        node->lastModified = QDateTime::currentDateTime();
-        vfsModel->refresh(currentIndex);
-    }
 }
 
 void MainWindow::onBack() {
@@ -405,9 +390,8 @@ void MainWindow::onSearch() {
     }
     QModelIndexList matches;
     recursiveMatch(QModelIndex(), searchText, matches);
-    if (matches.isEmpty()) {
+    if (matches.isEmpty())
         QMessageBox::information(this, "提示", "未找到匹配项");
-    }
     else {
         // 匹配第一个匹配项，跳转到该文件或文件夹
         QModelIndex matchIdx = matches.first();
@@ -425,11 +409,11 @@ void MainWindow::showContextMenu(const QPoint& pos) {
     menu.addAction("新建文件夹", this, [this]() { onNew(true); });
     menu.addAction("新建文件", this, [this]() { onNew(false); });
     if (idx.isValid()) {
-        menu.addAction("复制", this, &MainWindow::onCopy);
-        menu.addAction("删除", this, &MainWindow::onDelete);
+        menu.addAction("打开", this, &MainWindow::openCurrentItem);
+        menu.addAction("剪切", this, [this]() { onCutOrCopy(false); });
+        menu.addAction("复制", this, [this]() { onCutOrCopy(true); });
         menu.addAction("重命名", this, &MainWindow::onRename);
-        if (!vfsModel->nodeFromIndex(idx)->isDir)
-            menu.addAction("打开", this, &MainWindow::onOpenFile);
+        menu.addAction("删除", this, &MainWindow::onDelete); 
     }
     menu.addAction("粘贴", this, &MainWindow::onPaste);
     menu.exec(listView->viewport()->mapToGlobal(pos));
@@ -478,7 +462,6 @@ void MainWindow::loadVFS() {
         delete vfsRoot;
         vfsRoot = VNode::fromJson(doc.object());
     }
-    else {
+    else 
         vfsRoot = new VNode("root", true, nullptr);
-    }
 }

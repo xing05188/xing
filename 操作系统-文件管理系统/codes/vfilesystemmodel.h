@@ -34,4 +34,5 @@ public:
     // 只统计文件夹
     int rowCount(const QModelIndex& parent) const override;
     QModelIndex index(int row, int column, const QModelIndex& parent) const override;  
+    void refresh(const QModelIndex& idx);
 };
