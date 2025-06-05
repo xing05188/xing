@@ -58,7 +58,7 @@ gesture_classes = [
     "thumb_index2",    # 32
     "no_gesture"       # 33
 ]
-
+#可自行修改手势类别，需与模型训练时保持一致
 gesture_to_key = {
     19: "w",
     21: "s",
