@@ -46,7 +46,9 @@ python gesture_recognition.py
 "two_up", "two_up_inverted", "three_gun", "thumb_index", "thumb_index2",
 "no_gesture"]
 ```
-![对应手势](../Assets/readme/gestures.png)
+![对应手势](../Assets/readme/6.png)
+![对应手势](../Assets/readme/7.png)
+![对应手势](../Assets/readme/8.png)
 
 ### 球球大作战游戏
 运行 `ball_game.py` 脚本，启动游戏。
